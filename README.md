@@ -14,3 +14,16 @@ This script will also prepare a rerooted tree file of each using [phyx](https://
 An additional flag called --keep_only_outgroup, when called will *not* reroot any locus trees that do not include an outgroup.
 
 see the --help flag for full descript/explination of all this script can do
+
+
+Example script
+```
+python iqtree_sortadate_helper.py \
+  --logfile locustrees.iqtree \
+  --input_locus_trees locustrees.treefile \
+  --output locus_trees \
+  -suffix _trimalauto \
+  --fasta_directory loci_keep/ \
+  --reroot GCA_048127345.1 \
+  --keep_only_outgroup
+```
