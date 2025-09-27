@@ -1,4 +1,7 @@
 # Sortadate_IQTree2_helper
+
+STILL TESTING SCRIPT!!!!
+
 When using the [iqtree](https://iqtree.github.io/) 2.3.6 `-S` flag to generate locus/gene trees, this script will split the locus trees into a new directory and reroot them for down stream use for using [sortadate](https://github.com/FePhyFoFum/phyx). The section in the `*.iqtree` file describing basic statistics of the resulting trees indicates what locus/gene they came from (ID column).
 
 Notably, the script assumes the partition file came from AMAS, where the locus trees are appended with a `p*_{locus_name}`
