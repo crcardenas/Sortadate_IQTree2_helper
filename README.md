@@ -7,7 +7,7 @@ To check that you have called things correctly, you can include the path to the 
 
 In development, I removed the full file name thinking I would be slick, but I had to re-add the `_trimalauto` suffix to the file name for consistency, so that is why that flag exists.
 
-This script will also prepare a rerooted tree file of each so you can run sortadate. A python v3.10 conda environment with `bioconda::phyx` installed is required for the rerooting to work.
-This also has an additional flag called --keep_only_outgroup, when called will *not* reroot any locus trees that do not include an outgroup. Otherwise the --reroot
+This script will also prepare a rerooted tree file of each using [phyx](https://github.com/FePhyFoFum/phyx) so you can run sortadate. A python v3.10 conda environment with `bioconda::phyx` installed is required for the rerooting to work. 
+An additional flag called --keep_only_outgroup, when called will *not* reroot any locus trees that do not include an outgroup.
 
 see the --help flag for full descript/explination of all this script can do
