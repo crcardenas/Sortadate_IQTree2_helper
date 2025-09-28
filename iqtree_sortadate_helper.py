@@ -153,7 +153,7 @@ def main():
         "-o","--output",required=True,help="Output directory for individual trees",
     )
     parser.add_argument(
-        "-s","--suffix",required=False,default="_trimalauto",help="Optional suffix for file names (default: '_trimalauto')",
+        "-s","--suffix",required=False,default="_trimalauto",help="Optional suffix for file names, e.g., if the fasta file is different from what is found in the partition file used to generate the locus/gene trees (default: '_trimalauto')",
     )
     parser.add_argument(
         "-f","--fasta_directory",required=False,help="Optional directory of fasta files to check existence before writing tree",
