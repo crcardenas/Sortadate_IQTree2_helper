@@ -1,0 +1,8 @@
+name: sortadate_iqtree_helper
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - phyx=1.1
+  - python=3.10
