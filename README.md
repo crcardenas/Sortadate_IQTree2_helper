@@ -4,7 +4,7 @@ This script takes in a multi-tree newick file and splits it into individual newi
 
 This script will split the locus trees into a new directory and reroot them using [phyx](https://github.com/FePhyFoFum/phyx). The command `pxrr` uses a ranked order outgroup flag, which can accept multiple outgroups as a list. Here it is denoted as a comma seperated input (e.g., `--reroot out1,out2,out4`). It has the utility to check that a fasta file exists by calling that dirrectory with the `--fasta_directory` flag. This exists as somewhat of a sanity check to ensure you have called your files correctly. The `--keep_only_outgroup` flag will only reroot trees that include an outgroup, a list named `no_outgroups.list` will be printed in the same directory as the output. However, the `--keep_only_outgroup` flag only works _with one out group_. Lastly, as a final check, the number of files it splits and rerooted is printed to the standard output.
 
-In development, I removed the full file names in my partition file (`p4_core1000_trimalauto`) thinking I would be slick, but I had to re-add the `_trimalauto` suffix to the file name for consistency, so that is why the `--suffix` flag exists. But ideally you haven't altered the names of the names in your partition file
+In development, I removed the full file names in my partition file (`p4_core1000_trimalauto`) thinking I would be slick, but I had to re-add the `_trimalauto` suffix to the file name for consistency, so that is why the `--suffix` flag exists. But ideally you haven't altered the names in your partition file
 
 
 ### Example script
