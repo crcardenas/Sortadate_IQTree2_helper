@@ -1,45 +1,42 @@
-# Cody Raul Cardenas
-# September 27th 2025
-# Python 3.10
-# requires phyx 1.1 in your environment
 import argparse
 import os
 import re
 import subprocess
 from pathlib import Path
 
-
 def parse_log_file(logfile: str) -> dict:
 # Parse the IQ-TREE log file to extract ID -> Name mapping.
 # Stops at the 'Column meanings' section.
     id_to_name = {}
+    in_table = False
+    header_line = "ID\tType\tSeq\tSite\tUnique\tInfor\tInvar\tConst\tName"
     with open(logfile, "r") as f:
         for line in f:
-            if line.strip().startswith("Column meanings"):
+            stripped = line.strip()
+            # find start of table
+            if stripped == header_line:
+                in_table = True
+                continue
+            # find end of table
+            if stripped.startswith("Column meanings"):
                 break
+            # match table rows
             match = re.match(
-                r"\s*(\d+)\s+DNA\s+\d+\s+\d+\s+\d+\s+\d+\s+\d+\s+\S+\s+(\S+)",
+                r"\s*(\d+)\s+DNA\s+\d+\s+\d+\s+\d+\s+\d+\s+\d+\s+\d+\s+(\S+)",
                 line,
             )
             if match:
                 idx, name = match.groups()
-                # Strip off prefix like p123_
+                # remove AMAS prefix
                 name = re.sub(r"^p\d+_", "", name)
                 id_to_name[int(idx)] = name
     return id_to_name
 
-
 def run_pxrr(treefile: Path, ranked_ogs: str, out_file: Path):
-# Run pxrr to reroot the trees.
-# Parameters
-#    treefile : Path
-#        Input tree file to reroot
-#    ranked_ogs : str
-#        Comma-separated outgroup list (or whatever pxrr expects for -g)
-#    out_file : Path
-#        Path to write the rerooted tree (pxrr -o)
-    cmd = ["pxrr", "-t", str(treefile), "-r", "-g", ranked_ogs, "-o", str(out_file),]
-    print(f"[RUN] {' '.join(cmd)}")
+    # assign pxrr command to reroot trees
+    cmd = [
+        "pxrr", "-t", str(treefile), "-r", "-g", ranked_ogs, "-o", str(out_file),
+    ]
     subprocess.run(cmd, check=True)
 
 def split_trees(
@@ -60,7 +57,7 @@ def split_trees(
     no_outgroups = []
     reroot_fail_list = []
 
-    # prepare outgroup list (trim whitespace)
+    # prepare outgroup list
     outgroup_list = []
     if reroot:
         outgroup_list = [og.strip() for og in reroot.split(",") if og.strip()]
@@ -139,34 +136,42 @@ def split_trees(
                     ff.write(item + "\n")
             print(f"Wrote reroot-failures list: {fail_file}")
 
-
 def main():
     parser = argparse.ArgumentParser(
         description="Split multi-tree IQ-TREE output into per-locus tree files, with optional rerooting."
     )
     parser.add_argument(
-        "-l", "--logfile", required=True, help="IQ-TREE log file with locus table",
-    )
-    parser.add_argument( "-i","--input_locus_trees",required=True,help="Multi-tree .treefile from IQ-TREE",
-    )
-    parser.add_argument(
-        "-o","--output",required=True,help="Output directory for individual trees",
+        "-l", "--logfile", required=True,
+        help="IQ-TREE log file with locus table; required",
     )
     parser.add_argument(
-        "-s","--suffix",required=False,default="_trimalauto",help="Optional suffix for file names, e.g., if the fasta file is different from what is found in the partition file used to generate the locus/gene trees (default: '_trimalauto')",
+        "-i", "--input_locus_trees", required=True,
+        help="Multi-tree .treefile from IQ-TREE; required",
     )
     parser.add_argument(
-        "-f","--fasta_directory",required=False,help="Optional directory of fasta files to check existence before writing tree",
+        "-o", "--output", required=True,
+        help="Output directory for individual trees; required",
     )
     parser.add_argument(
-        "-r","--reroot",type=str,required=False,help="Comma-separated outgroup list for rerooting (will be passed to pxrr -g)",
+        "-s",  "--suffix",  required=False,
+        help="Optional suffix for file names (default: '_trimalauto')",
     )
     parser.add_argument(
-        "--keep_only_outgroup",action="store_true", help="If set, only reroot trees containing at least one specified outgroup. Others are listed in no_outgroups.list",
+        "-f",  "--fasta_directory", required=False,
+        help="Optional directory of fasta files to check existence before writing tree",
+    )
+    parser.add_argument(
+        "-r", "--reroot", type=str, required=False,
+        help="Comma-separated outgroup list for rerooting (will be passed to pxrr -g)",
+    )
+    parser.add_argument(
+        "--keep_only_outgroup", action="store_true",
+        help="If set, only reroot trees containing at least one specified outgroup. Others are listed in no_outgroups.list; requires -r/--reroot flag",
     )
 
     args = parser.parse_args()
 
+    # assign function logic
     id_to_name = parse_log_file(args.logfile)
     split_trees(
         args.input_locus_trees,
@@ -178,8 +183,5 @@ def main():
         args.keep_only_outgroup,
     )
 
-
 if __name__ == "__main__":
-    main()
-
     main()
