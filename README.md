@@ -7,7 +7,6 @@ This script will split the locus trees into a new directory and reroot them usin
 In development, I removed the full file names in my partition file (`p4_core1000_trimalauto`) thinking I would be slick, but I had to re-add the `_trimalauto` suffix to the file name for consistency, so that is why the `--suffix` flag exists. But ideally you haven't altered the names of the names in your partition file
 
 
-
 ### Example script
 ```
 python iqtree_sortadate_helper.py \
@@ -19,3 +18,5 @@ python iqtree_sortadate_helper.py \
   --reroot GCA_048127345.1 \
   --keep_only_outgroup
 ```
+
+If used in publication, please be sure to refer to this github and approrpiately attribute AMAS, SortaDate, phyx, and IQTree.
