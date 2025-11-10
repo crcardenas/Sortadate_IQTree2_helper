@@ -4,40 +4,46 @@ import re
 import subprocess
 from pathlib import Path
 
+
 def parse_log_file(logfile: str) -> dict:
-# Parse the IQ-TREE log file to extract ID -> Name mapping.
-# Stops at the 'Column meanings' section.
+    """
+    Parse the IQ-TREE log file to extract ID -> Name mapping
+    for logs with columns:
+    Subset  Type  Seqs  Sites  Infor  Invar  Model  Name
+    """
     id_to_name = {}
     in_table = False
-    header_line = "ID\tType\tSeq\tSite\tUnique\tInfor\tInvar\tConst\tName"
+    header_line = "Subset\tType\tSeqs\tSites\tInfor\tInvar\tModel\tName"
+
     with open(logfile, "r") as f:
         for line in f:
             stripped = line.strip()
-            # find start of table
+            # Detect start of the table
             if stripped == header_line:
                 in_table = True
                 continue
-            # find end of table
+            # Detect end of section
             if stripped.startswith("Column meanings"):
                 break
-            # match table rows
-            match = re.match(
-                r"\s*(\d+)\s+DNA\s+\d+\s+\d+\s+\d+\s+\d+\s+\d+\s+\d+\s+(\S+)",
-                line,
-            )
-            if match:
-                idx, name = match.groups()
-                # remove AMAS prefix
-                name = re.sub(r"^p\d+_", "", name)
-                id_to_name[int(idx)] = name
+
+            if in_table:
+                # Split the line by whitespace or tabs
+                parts = line.strip().split()
+                if len(parts) >= 8 and parts[0].isdigit():
+                    idx = int(parts[0])
+                    name = parts[-1]  # last column is always the name
+                    name = re.sub(r"^p\d+_", "", name)
+                    id_to_name[idx] = name
+
     return id_to_name
 
 def run_pxrr(treefile: Path, ranked_ogs: str, out_file: Path):
-    # assign pxrr command to reroot trees
+    # assign pxrr command to reroot trees (suppress stdout)
     cmd = [
         "pxrr", "-t", str(treefile), "-r", "-g", ranked_ogs, "-o", str(out_file),
     ]
-    subprocess.run(cmd, check=True)
+    subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+
 
 def split_trees(
     treefile: str,
@@ -47,6 +53,7 @@ def split_trees(
     fasta_dir: str = None,
     reroot: str = None,
     keep_only_outgroup: bool = False,
+    name_replace: str = None,
 ):
     os.makedirs(outdir, exist_ok=True)
 
@@ -62,12 +69,25 @@ def split_trees(
     if reroot:
         outgroup_list = [og.strip() for og in reroot.split(",") if og.strip()]
 
+    # prepare name replacement regex if provided
+    name_replace_pattern, name_replace_sub = None, None
+    if name_replace:
+        try:
+            name_replace_pattern, name_replace_sub = name_replace.split(",", 1)
+        except ValueError:
+            print("[ERROR] Invalid --name_replace format. Use 'pattern,replacement'.")
+            exit(1)
+
     with open(treefile, "r") as f:
         for i, line in enumerate(f, start=1):
             if i not in id_to_name:
                 continue
 
             name = id_to_name[i]
+
+            # apply regex name replacement if requested
+            if name_replace_pattern and name_replace_sub:
+                name = re.sub(name_replace_pattern, name_replace_sub, name)
 
             # Apply suffix, e.g. _trimalauto
             basename = f"{name}{suffix}" if suffix else name
@@ -87,7 +107,6 @@ def split_trees(
 
             # Handle rerooting if requested
             if reroot:
-                # If keep_only_outgroup is set, check that at least one outgroup is present in the tree string
                 if keep_only_outgroup:
                     found = False
                     for og in outgroup_list:
@@ -99,8 +118,6 @@ def split_trees(
                         no_outgroups.append(str(outfile))
                         continue
 
-                # Create rerooted filename by appending .rr to the original filename
-                # e.g. core_10000_trimalauto.treefile -> core_10000_trimalauto.treefile.rr
                 rr_file = outfile.with_name(outfile.name + ".rr")
 
                 try:
@@ -136,6 +153,7 @@ def split_trees(
                     ff.write(item + "\n")
             print(f"Wrote reroot-failures list: {fail_file}")
 
+
 def main():
     parser = argparse.ArgumentParser(
         description="Split multi-tree IQ-TREE output into per-locus tree files, with optional rerooting."
@@ -165,8 +183,12 @@ def main():
         help="Comma-separated outgroup list for rerooting (will be passed to pxrr -g)",
     )
     parser.add_argument(
-        "--keep_only_outgroup", action="store_true",
+        "--keep_only_outgroup", action="store_true", required=False,
         help="If set, only reroot trees containing at least one specified outgroup. Others are listed in no_outgroups.list; requires -r/--reroot flag",
+    )
+    parser.add_argument(
+        "--name_replace", type=str, required=False,
+        help=r"Optional regex replacement applied to locus names before suffix (format: 'pattern,replacement'): e.g., \"uce(\\d+),uce-\\1.\".",
     )
 
     args = parser.parse_args()
@@ -181,7 +203,9 @@ def main():
         args.fasta_directory,
         args.reroot,
         args.keep_only_outgroup,
+        args.name_replace,
     )
+
 
 if __name__ == "__main__":
     main()
