@@ -4,7 +4,7 @@ This script takes in a multi-tree newick file and splits it into individual newi
 
 This script will split the locus trees into a new directory and reroot them using [phyx](https://github.com/FePhyFoFum/phyx). The command `pxrr` uses a ranked order outgroup flag, which can accept multiple outgroups as a list. Here it is denoted as a comma seperated input (e.g., `--reroot out1,out2,out4`). It has the utility to check that a fasta file exists by calling that dirrectory with the `--fasta_directory` flag. This exists as somewhat of a sanity check to ensure you have called your files correctly. The `--keep_only_outgroup` flag will only reroot trees that include an outgroup. However, the `--keep_only_outgroup` flag only works _with one out group_. A list named `no_outgroups.list` will be printed in the output directory. Lastly, as a final check, the number of files it splits and rerooted is printed to the standard output.
 
-In development, I removed the full file names in my partition file (`p4_core1000_trimalauto`) thinking I would be slick, but I had to re-add the `_trimalauto` suffix to the file name for consistency, so that is why the `--suffix` flag exists. But ideally you haven't altered the names in your partition file
+In development, I removed the full file names in my partition file (`p4_core1000_trimalauto`) thinking I would be slick, but I had to re-add the `_trimalauto` suffix to the file name for consistency, so that is why the `--suffix` flag exists. I.E., unless you have altered the names of your files in some way removed the suffix like I have, you should not need to use the --suffix flag!
 
 
 ### Example script
@@ -13,7 +13,6 @@ python iqtree_sortadate_helper.py \
   --logfile locustrees.iqtree \
   --input_locus_trees locustrees.treefile \
   --output locus_trees \
-  --suffix _trimalauto \
   --fasta_directory loci_keep/ \
   --reroot GCA_048127345.1 \
   --keep_only_outgroup
